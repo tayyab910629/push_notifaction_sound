@@ -1,0 +1,38 @@
+<!-- app/views/home/index.html.erb -->
+<h1>Welcome to My App</h1>
+<button id="play-sound">Play Notification Sound</button>
+
+<script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var pusher = new Pusher('a3c3340bf7c8fef97c28', {
+      cluster: 'eu',
+      forceTLS: true
+    });
+
+    var channel = pusher.subscribe('notifications_channel');
+    channel.bind('play-sound', function(data) {
+      var audio = new Audio('<%= asset_path("notification.mp3") %>'); // Ensure correct path
+      audio.play();
+    });
+
+    document.getElementById('play-sound').addEventListener('click', function() {
+      var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      fetch('/play_sound', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log('Sound event triggered');
+        } else {
+          console.error('Failed to trigger sound event:', response.status);
+        }
+      })
+      .catch(err => console.error('Error triggering sound:', err));
+    });
+  });
+</script>
